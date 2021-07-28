@@ -6,7 +6,7 @@
 tags
 TAGS
 bazel-*
-build/
+build*/
 Test/localResults/
 External/googletest
 External/spirv-tools
