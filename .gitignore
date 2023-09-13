@@ -22,4 +22,5 @@ tools/
 # Random OS stuff
 .DS_Store
 ._*
-artifact
+artifact/
+build-*/

@@ -26,16 +26,17 @@ echo "current dir: ${current_dir}"
 
 function build() {
     BUILD_TYPE=$1
+    BUILD_OUT="build-${BUILD_TYPE}"
     echo -e "\033[01;32m ------------- BUILD (${BUILD_TYPE}) -----------------  \033[0m"
 
     CMAKE_BUILD_TYPE="Release"
-    if [[ "$1" == "debug" ]]; then
+    if [[ "${BUILD_TYPE}" == "debug" ]]; then
         CMAKE_BUILD_TYPE="Debug"
     fi
 
-    rm -rf build
-    mkdir -p build
-    cd build
+    rm -rf ${BUILD_OUT}
+    mkdir -p ${BUILD_OUT}
+    cd ${BUILD_OUT}
     emcmake cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_GLSLANG_JS=ON \
         -DENABLE_HLSL=OFF -DBUILD_TESTING=OFF -DENABLE_OPT=OFF -DINSTALL_GTEST=OFF ..
     emmake make glslang.js -j${core_count} #VERBOSE=1 
@@ -45,10 +46,8 @@ function build() {
     echo -e "\033[01;32m ------------- COLLECTING ALL .a FILES (${BUILD_TYPE}) -----------------  \033[0m"
     
     mkdir -p artifact/${BUILD_TYPE}/tmp
-    # cp ./build/glslang/OSDependent/Web/glslang.js ./artifact/
-    # cp ./build/glslang/OSDependent/Web/glslang.wasm ./artifact/
 
-    find ./build -type f -name "*.a" -print0 | xargs -0 -I {} cp {} ./artifact/${BUILD_TYPE}/tmp
+    find ./${BUILD_OUT} -type f -name "*.a" -print0 | xargs -0 -I {} cp {} ./artifact/${BUILD_TYPE}/tmp
     cp ./glslang/OSDependent/Web/*.js ./artifact/${BUILD_TYPE}/
 
     ls -l ./artifact/${BUILD_TYPE}/tmp
@@ -68,7 +67,7 @@ function build() {
 }
 
 rm -rf artifact
-build "debug"
+# build "debug"
 build "release"
 
 
