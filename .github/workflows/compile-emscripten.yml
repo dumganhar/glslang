@@ -28,8 +28,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v2
-          with:
-              python-version: '3.7'
+        with:
+            python-version: '3.7'
 
       - name: Setup emsdk
         uses: dumganhar/setup-emsdk@997d2cde2deabda085a11f98e86e842915b0e846
