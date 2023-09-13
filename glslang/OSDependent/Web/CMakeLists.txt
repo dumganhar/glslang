@@ -32,53 +32,65 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 if(ENABLE_GLSLANG_JS)
-    add_executable(glslang.js "glslang.js.cpp")
-    glslang_set_link_args(glslang.js)
-    target_link_libraries(glslang.js glslang SPIRV)
 
-    # Link library names that start with "-" are treated as link flags.
-    # "-Os" should be OK in MSVC; don't use /Os because CMake won't
-    # treat it as a link flag.
-    target_link_libraries(glslang.js "-Os")
+    add_library(glslang.js STATIC "glslang.js.cpp")
+    target_link_libraries(glslang.js PRIVATE glslang SPIRV)
 
-    if(EMSCRIPTEN)
-        set_target_properties(glslang.js PROPERTIES
-            OUTPUT_NAME "glslang"
-            SUFFIX ".js")
-        em_link_pre_js(glslang.js "${CMAKE_CURRENT_SOURCE_DIR}/glslang.pre.js")
+    # add_executable(glslang.js "glslang.js.cpp")
+    # glslang_set_link_args(glslang.js)
+    # target_link_libraries(glslang.js glslang SPIRV)
 
-        target_link_libraries(glslang.js "--llvm-lto 1")
-        target_link_libraries(glslang.js "--closure 1")
-        target_link_libraries(glslang.js "-s MODULARIZE=1")
-        target_link_libraries(glslang.js "-s ALLOW_MEMORY_GROWTH=1")
-        target_link_libraries(glslang.js "-s FILESYSTEM=0")
+    # # Link library names that start with "-" are treated as link flags.
+    # # "-Os" should be OK in MSVC; don't use /Os because CMake won't
+    # # treat it as a link flag.
+    # target_link_libraries(glslang.js "-Os")
 
-        # We use ccall in glslang.pre.js, so make sure it's exposed
-        target_link_libraries(glslang.js "-s EXPORTED_RUNTIME_METHODS=ccall")
+    # if(EMSCRIPTEN)
+    #     set_target_properties(glslang.js PROPERTIES
+    #         OUTPUT_NAME "glslang"
+    #         SUFFIX ".js")
+    #     em_link_pre_js(glslang.js "${CMAKE_CURRENT_SOURCE_DIR}/glslang.pre.js")
 
-        if(ENABLE_EMSCRIPTEN_SINGLE_FILE)
-            target_link_libraries(glslang.js "-s SINGLE_FILE=1")
-        endif()
+    #     target_link_libraries(glslang.js "--llvm-lto 1")
+    #     target_link_libraries(glslang.js "--closure 1")
+    #     target_link_libraries(glslang.js "-s MODULARIZE=1")
+    #     target_link_libraries(glslang.js "-s ALLOW_MEMORY_GROWTH=1")
+    #     target_link_libraries(glslang.js "-s FILESYSTEM=0")
 
-        if(ENABLE_EMSCRIPTEN_ENVIRONMENT_NODE)
-            target_link_libraries(glslang.js "-s ENVIRONMENT=node -s BINARYEN_ASYNC_COMPILATION=0")
-        else()
-            target_link_libraries(glslang.js "-s ENVIRONMENT=web,worker")
-        endif()
+    #     target_link_libraries(glslang.js "-s DYNAMIC_EXECUTION=0")
+    #     target_link_libraries(glslang.js "-s ERROR_ON_UNDEFINED_SYMBOLS=0")
+    #     target_link_libraries(glslang.js "-s USE_ES6_IMPORT_META=0")
+    #     target_link_libraries(glslang.js "-s EXPORT_ES6=1")
+    #     target_link_libraries(glslang.js "-s NO_EXIT_RUNTIME=1")
+    #     target_link_libraries(glslang.js "-s LLD_REPORT_UNDEFINED")
+    #     target_link_libraries(glslang.js "-s MIN_SAFARI_VERSION=110000")
 
-        if(NOT ENABLE_EMSCRIPTEN_ENVIRONMENT_NODE)
-            if (CMAKE_HOST_SYSTEM MATCHES "Windows.*")
-                # There are several ways we could append one file to another on Windows, but unfortunately 'cat' is not one of them
-                # (there is no 'cat' command in cmd). Also, since this will ultimately run in cmd and not pwsh, we need to ensure
-                # Windows path separators are used.
-                file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/glslang.js" glslang_js_path)
-                file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/glslang.after.js" glslang_after_js_path)
-                add_custom_command(TARGET glslang.js POST_BUILD
-                    COMMAND type "${glslang_after_js_path}" >> "${glslang_js_path}")
-            else()
-                add_custom_command(TARGET glslang.js POST_BUILD
-                    COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/glslang.after.js >> ${CMAKE_CURRENT_BINARY_DIR}/glslang.js)
-            endif()
-        endif()
-    endif()
+    #     # We use ccall in glslang.pre.js, so make sure it's exposed
+    #     target_link_libraries(glslang.js "-s EXPORTED_RUNTIME_METHODS=ccall")
+
+    #     if(ENABLE_EMSCRIPTEN_SINGLE_FILE)
+    #         target_link_libraries(glslang.js "-s SINGLE_FILE=1")
+    #     endif()
+
+    #     if(ENABLE_EMSCRIPTEN_ENVIRONMENT_NODE)
+    #         target_link_libraries(glslang.js "-s ENVIRONMENT=node -s BINARYEN_ASYNC_COMPILATION=0")
+    #     else()
+    #         target_link_libraries(glslang.js "-s ENVIRONMENT=web")
+    #     endif()
+
+    #     if(NOT ENABLE_EMSCRIPTEN_ENVIRONMENT_NODE)
+    #         if (CMAKE_HOST_SYSTEM MATCHES "Windows.*")
+    #             # There are several ways we could append one file to another on Windows, but unfortunately 'cat' is not one of them
+    #             # (there is no 'cat' command in cmd). Also, since this will ultimately run in cmd and not pwsh, we need to ensure
+    #             # Windows path separators are used.
+    #             file(TO_NATIVE_PATH "${CMAKE_CURRENT_BINARY_DIR}/glslang.js" glslang_js_path)
+    #             file(TO_NATIVE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/glslang.after.js" glslang_after_js_path)
+    #             add_custom_command(TARGET glslang.js POST_BUILD
+    #                 COMMAND type "${glslang_after_js_path}" >> "${glslang_js_path}")
+    #         else()
+    #             add_custom_command(TARGET glslang.js POST_BUILD
+    #                 COMMAND cat ${CMAKE_CURRENT_SOURCE_DIR}/glslang.after.js >> ${CMAKE_CURRENT_BINARY_DIR}/glslang.js)
+    #         endif()
+    #     endif()
+    # endif()
 endif()

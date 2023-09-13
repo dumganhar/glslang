@@ -23,17 +23,54 @@ echo "CPU core count：$core_count"
 current_dir=$(pwd)
 echo "current dir: ${current_dir}"
 
-mkdir -p build
-cd build
-emcmake cmake -DCMAKE_BUILD_TYPE=Release -DENABLE_GLSLANG_JS=ON \
-    -DENABLE_HLSL=OFF -DBUILD_TESTING=OFF -DENABLE_OPT=OFF -DINSTALL_GTEST=OFF ..
-emmake make -j${core_count} #VERBOSE=1 
 
-cd ..
+function build() {
+    BUILD_TYPE=$1
+    echo -e "\033[01;32m ------------- BUILD (${BUILD_TYPE}) -----------------  \033[0m"
+
+    CMAKE_BUILD_TYPE="Release"
+    if [[ "$1" == "debug" ]]; then
+        CMAKE_BUILD_TYPE="Debug"
+    fi
+
+    rm -rf build
+    mkdir -p build
+    cd build
+    emcmake cmake -DCMAKE_BUILD_TYPE=${CMAKE_BUILD_TYPE} -DENABLE_GLSLANG_JS=ON \
+        -DENABLE_HLSL=OFF -DBUILD_TESTING=OFF -DENABLE_OPT=OFF -DINSTALL_GTEST=OFF ..
+    emmake make glslang.js -j${core_count} #VERBOSE=1 
+
+    cd ..
+
+    echo -e "\033[01;32m ------------- COLLECTING ALL .a FILES (${BUILD_TYPE}) -----------------  \033[0m"
+    
+    mkdir -p artifact/${BUILD_TYPE}/tmp
+    # cp ./build/glslang/OSDependent/Web/glslang.js ./artifact/
+    # cp ./build/glslang/OSDependent/Web/glslang.wasm ./artifact/
+
+    find ./build -type f -name "*.a" -print0 | xargs -0 -I {} cp {} ./artifact/${BUILD_TYPE}/tmp
+    cp ./glslang/OSDependent/Web/*.js ./artifact/${BUILD_TYPE}/
+
+    ls -l ./artifact/${BUILD_TYPE}/tmp
+
+    echo -e "\033[01;32m ------------- BUILD A FAT .a (${BUILD_TYPE}) -----------------  \033[0m"
+
+    pushd ./artifact/${BUILD_TYPE}/tmp
+
+    find . -type f -name "*.a" -print0 | xargs -0 -I {} emar -x {}
+
+    emar -rcs libglslang-fat.${BUILD_TYPE}.a *.o
+    cp libglslang-fat.${BUILD_TYPE}.a ..
+    cd ..
+    rm -rf ./tmp
+
+    popd
+}
+
 rm -rf artifact
-mkdir artifact
-cp ./build/StandAlone/glslang.js ./artifact/
-cp ./build/StandAlone/glslang.wasm ./artifact/
+build "debug"
+build "release"
+
 
 end_time=$(get_current_time_in_seconds)
 
